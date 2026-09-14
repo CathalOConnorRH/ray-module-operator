@@ -76,7 +76,8 @@ import (
 // +kubebuilder:rbac:groups=route.openshift.io,resources=routes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=ray.io,resources=rayclusters;rayjobs;rayservices;raycronjobs,verbs=get;list;watch;create;update;patch;delete;deletecollection
 // +kubebuilder:rbac:groups=ray.io,resources=rayclusters/finalizers;rayjobs/finalizers;rayservices/finalizers;raycronjobs/finalizers,verbs=get;update
-// +kubebuilder:rbac:groups=ray.io,resources=rayclusters/status;rayjobs/status;rayservices/status;raycronjobs/status,verbs=get;list;update;patch
+// +kubebuilder:rbac:groups=ray.io,resources=rayclusters/status;rayservices/status;raycronjobs/status,verbs=get;list;update;patch
+// +kubebuilder:rbac:groups=ray.io,resources=rayjobs/status,verbs=get;list;update;patch;create;delete
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=clusterroles;clusterrolebindings;roles;rolebindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations;validatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;list;watch;create;update;patch
@@ -121,6 +122,7 @@ func SetupWithManager(ctx context.Context, mgr ctrl.Manager, manifestsBasePath s
 		WithAction(manifestInitAction()).
 		WithAction(applyImageParamsAction(manifestsBasePath)).
 		WithAction(RenderKustomize(manifestsBasePath, nsFn)).
+		WithAction(certManagerRequirementAction()).
 		WithAction(filterPlatformResources(mapper)).
 		WithAction(notebookClusterRoleAction()).
 		WithAction(deploy.NewAction(
@@ -130,6 +132,7 @@ func SetupWithManager(ctx context.Context, mgr ctrl.Manager, manifestsBasePath s
 		)).
 		WithAction(deploymentStatusAction(nsFn)).
 		WithAction(distributionAction(manifestsBasePath)).
+		WithAction(platformReleaseAction()).
 		WithAction(degradedAction()).
 		WithAction(observedGenerationAction()).
 		WithAction(reconcileGCAction(nsFn)).
